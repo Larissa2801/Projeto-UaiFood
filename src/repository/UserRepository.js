@@ -1,18 +1,23 @@
 // src/repository/UserRepository.js
 
 const prisma = require("../config/prisma.js");
+const bcrypt = require("bcrypt");
+const saltRounds = 10;
 
 class UserRepository {
   // [CREATE]
   async create(userData) {
-    // ... (Seu código de create está correto, sem updatedAt)
-    const { name, phone, password, userType } = userData;
+    const { email, name, phone, password, userType } = userData;
+
+    // Hashing da senha
+    const hashedPassword = await bcrypt.hash(password, saltRounds);
 
     const newUser = await prisma.user.create({
       data: {
-        name: name,
-        phone: phone,
-        password: password,
+        email,
+        name,
+        phone,
+        password: hashedPassword, // Salva o hash!
         userType: userType || "CLIENT",
       },
       select: {
@@ -24,7 +29,20 @@ class UserRepository {
         updatedAt: true,
       },
     });
+
     return newUser;
+  }
+  async findByEmailWithPassword(email) {
+    return prisma.user.findUnique({
+      where: { email: email },
+      select: {
+        id: true,
+        email: true,
+        password: true, // ESSENCIAL: precisa do hash para login
+        userType: true, // ESSENCIAL: para Autorização (role)
+        name: true,
+      },
+    });
   }
 
   // [READ ONE]

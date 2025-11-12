@@ -73,17 +73,17 @@ model orderitem {
 }
 
 model user {
-  id        BigInt        @id @default(autoincrement())
-  name      String
-  phone     String
-  password  String
-  userType  user_userType @default(CLIENT)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt // <-- ADICIONADO!
-  address   address?
-  order     order[]
+  id        BigInt        @id @default(autoincrement())
+  name      String
+  email     String  @unique 
+  phone     String
+  password  String
+  userType  user_userType @default(CLIENT)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  address   address?
+  order     order[]
 }
-
 enum order_paymentMethod {
   CASH
   DEBIT
