@@ -11,12 +11,11 @@ import { ShoppingCart } from "lucide-react";
 
 // Definição da interface (mantida do código anterior)
 interface Product {
-  id: string;
+  id: string; // O ID é uma string após a conversão do BigInt no mapeamento
   name: string;
   description: string;
-  price: number;
+  price: number; // Mantenha como number para cálculos (o mapeamento já converte unitPrice)
 }
-
 // URL da API (mantida para referência futura)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
@@ -31,7 +30,7 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
 
   // DADOS MOCK PARA VISUALIZAÇÃO E TESTE SEM BACKEND
-  
+
   const mockProducts: Product[] = [
     {
       id: "1",
@@ -53,21 +52,11 @@ export default function HomePage() {
       price: 7.0,
     },
   ];
-  
 
   // O useEffect agora usa os dados mock
-  
-  useEffect(() => {
-    /*
-    // ⚠️ QUANDO O BACKEND ESTIVER PRONTO, COMENTE ESTE BLOCO E DESCOMENTE A LÓGICA DE BUSCA DA API
-    const loadMockProducts = () => {
-      setProducts(mockProducts);
-      setIsLoading(false);
-    };
-    loadMockProducts();
-    */
 
-     // LÓGICA DE BUSCA REAL (DESCOMENTAR QUANDO O BACKEND ESTIVER NO AR)
+  useEffect(() => {
+    // LÓGICA DE BUSCA REAL
     const fetchProducts = async () => {
       if (!token) {
         setIsLoading(false);
@@ -76,7 +65,8 @@ export default function HomePage() {
       }
 
       try {
-        const response = await fetch(`${API_URL}/products`, {
+        // CORREÇÃO: Altera /products para /items
+        const response = await fetch(`${API_URL}/items`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -87,18 +77,27 @@ export default function HomePage() {
         }
 
         const data = await response.json();
-        setProducts(data);
+
+        // 🚨 Mapeamento dos campos do Back-end para o Front-end
+        const mappedProducts = data.map((item: any) => ({
+          id: String(item.id), // Garante que o BigInt é uma string
+          name: item.description, // Usa 'description' do Back-end como 'name' no Front-end
+          description: item.description, // Mantém a descrição original
+          price: item.unitPrice, // Mapeia 'unitPrice' para 'price' (esperado pelo Front)
+        }));
+
+        setProducts(mappedProducts); // Usa os dados mapeados
       } catch (e: any) {
         setError(e.message || "Falha ao conectar com o servidor.");
-        toast.error("Falha ao carregar o cardápio. Tente novamente mais tarde.");
+        toast.error(
+          "Falha ao carregar o cardápio. Tente novamente mais tarde."
+        );
       } finally {
         setIsLoading(false);
       }
     };
     fetchProducts();
-    
   }, [token]);
-
   if (isLoading) {
     return <div className="text-center p-8">Carregando cardápio...</div>;
   }
@@ -144,7 +143,10 @@ export default function HomePage() {
 
                 <div className="mt-auto flex justify-between items-center pt-2">
                   <span className="text-2xl font-extrabold text-green-600">
-                    R$ {product.price.toFixed(2).replace(".", ",")}
+                    R${" "}
+                    {Number(product.price ?? 0)
+                      .toFixed(2)
+                      .replace(".", ",")}
                   </span>
 
                   <button

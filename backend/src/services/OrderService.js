@@ -29,6 +29,17 @@ class OrderService {
 
     return order;
   }
+  async findAllOrders(currentUserType) {
+    // Não precisa de userId, mas pode checar o tipo.
+    // REGRA: Apenas Administradores podem usar esta função (Embora a rota faria esta checagem)
+    if (currentUserType !== "ADMIN") {
+      throw new Error("Acesso negado.");
+    }
+
+    // Chama o Repository para buscar todos os pedidos.
+    // Esta função no Repository deve garantir que as relações (itens, cliente) são carregadas!
+    return orderRepository.findAllOrders();
+  }
 
   /**
    * [UPDATE STATUS] Acesso com Regra de Autorização

@@ -37,58 +37,20 @@ export default function CartPage() {
   const [paymentMethod, setPaymentMethod] = useState("pix"); // Default: pix
 
   // Lógica de finalização de pedido
-  const handleCheckout = async () => {
+  const handleCheckout = () => {
     if (items.length === 0) {
       toast.error("O carrinho está vazio!");
       return;
     }
+
     if (!token) {
       toast.error("Você precisa estar logado para finalizar o pedido.");
       router.push("/");
       return;
     }
-    if (!address.trim()) {
-      toast.error("Por favor, insira o endereço de entrega.");
-      return;
-    }
 
-    setIsLoading(true);
-
-    try {
-      const orderData = {
-        items: items.map((item) => ({
-          productId: item.productId,
-          quantity: item.quantity,
-        })),
-        totalPrice: totalPrice,
-        address: address,
-        paymentMethod: paymentMethod,
-      };
-
-      const response = await fetch(`${API_URL}/orders`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(orderData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || "Falha ao criar pedido.");
-      }
-
-      toast.success("Pedido realizado com sucesso!");
-      clearCart();
-      router.push(`/order/${result.orderId}`); // Redireciona para a tela de confirmação
-    } catch (error: any) {
-      console.error("Erro no checkout:", error);
-      toast.error(`Erro ao finalizar pedido: ${error.message}`);
-    } finally {
-      setIsLoading(false);
-    }
+    // Redireciona para a tela de confirmação/checkout
+    router.push("/checkout");
   };
 
   // Se o carrinho estiver vazio, redireciona para o cardápio

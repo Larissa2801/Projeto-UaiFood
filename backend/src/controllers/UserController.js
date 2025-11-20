@@ -1,6 +1,134 @@
-// backend/src/controllers/UserController.js
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     UserCreate:
+ *       type: object
+ *       required:
+ *         - name
+ *         - email
+ *         - password
+ *       properties:
+ *         name:
+ *           type: string
+ *           example: João Silva
+ *         email:
+ *           type: string
+ *           example: joao.silva@ifood.com
+ *         password:
+ *           type: string
+ *           example: senhaSegura123
+ *         userType:
+ *           type: string
+ *           enum: [user, admin]
+ *           example: user
+ *
+ *     UserResponse:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         name:
+ *           type: string
+ *         email:
+ *           type: string
+ *         userType:
+ *           type: string
+ *           enum: [user, admin]
+ */
 
-// Importe o Serviço de Usuário, não o Repositório
+/**
+ * @swagger
+ * tags:
+ *   - name: Usuários
+ *     description: Gerenciamento de usuários
+ */
+
+/**
+ * @swagger
+ * /users:
+ *   post:
+ *     summary: Cria um novo usuário (Cadastro)
+ *     tags:
+ *       - Usuários
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserCreate'
+ *     responses:
+ *       201:
+ *         description: Usuário criado com sucesso.
+ *       500:
+ *         description: Falha interna ao criar usuário.
+ *
+ *   get:
+ *     summary: Lista todos os usuários
+ *     tags:
+ *       - Usuários
+ *     responses:
+ *       200:
+ *         description: Lista de usuários.
+ *       500:
+ *         description: Falha interna ao buscar usuários.
+ *
+ * /users/{id}:
+ *   parameters:
+ *     - in: path
+ *       name: id
+ *       schema:
+ *         type: string
+ *       required: true
+ *       description: ID do usuário
+ *
+ *   get:
+ *     summary: Busca um usuário pelo ID
+ *     tags:
+ *       - Usuários
+ *     responses:
+ *       200:
+ *         description: Dados do usuário encontrado.
+ *       404:
+ *         description: Usuário não encontrado.
+ *       500:
+ *         description: Falha interna ao buscar usuário.
+ *
+ *   put:
+ *     summary: Atualiza um usuário pelo ID
+ *     tags:
+ *       - Usuários
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/UserCreate'
+ *     responses:
+ *       200:
+ *         description: Usuário atualizado com sucesso.
+ *       403:
+ *         description: Acesso negado.
+ *       500:
+ *         description: Falha interna ao atualizar usuário.
+ *
+ *   delete:
+ *     summary: Deleta um usuário pelo ID
+ *     tags:
+ *       - Usuários
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Usuário deletado com sucesso.
+ *       403:
+ *         description: Usuário não autorizado a deletar.
+ *       500:
+ *         description: Falha interna ao deletar usuário.
+ */
+
 const userService = require("../services/UserService");
 
 class UserController {

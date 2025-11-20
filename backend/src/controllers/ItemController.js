@@ -1,6 +1,108 @@
-// backend/src/controllers/ItemController.js
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     ItemCreate:
+ *       type: object
+ *       required:
+ *         - description
+ *         - unitPrice
+ *         - categoryId
+ *       properties:
+ *         description:
+ *           type: string
+ *           example: Mega Burger de Picanha
+ *         unitPrice:
+ *           type: number
+ *           format: float
+ *           example: 35.90
+ *         categoryId:
+ *           type: string
+ *           example: "1"
+ *
+ *     ItemResponse:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         description:
+ *           type: string
+ *         unitPrice:
+ *           type: number
+ *           format: float
+ *         category:
+ *           $ref: '#/components/schemas/CategoryResponse'
+ */
 
-// Importa o Serviço em vez do Repositório
+/**
+ * @swagger
+ * tags:
+ *   - name: Catálogo - Itens
+ *     description: Gerenciamento de itens (Produtos)
+ */
+
+/**
+ * @swagger
+ * /items:
+ *   post:
+ *     summary: Cria um novo item/produto (ADMIN)
+ *     tags:
+ *       - Catálogo - Itens
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ItemCreate'
+ *     responses:
+ *       201:
+ *         description: Item criado com sucesso.
+ *
+ *   get:
+ *     summary: Lista todos os itens (Cardápio)
+ *     tags:
+ *       - Catálogo - Itens
+ *     responses:
+ *       200:
+ *         description: Lista de itens.
+ *
+ * /items/{id}:
+ *   parameters:
+ *     - in: path
+ *       name: id
+ *       schema:
+ *         type: string
+ *       required: true
+ *       description: ID do item
+ *
+ *   put:
+ *     summary: Atualiza um item pelo ID (ADMIN)
+ *     tags:
+ *       - Catálogo - Itens
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/ItemCreate'
+ *     responses:
+ *       200:
+ *         description: Item atualizado.
+ *
+ *   delete:
+ *     summary: Deleta um item pelo ID (ADMIN)
+ *     tags:
+ *       - Catálogo - Itens
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Item deletado.
+ */
 const itemService = require("../services/ItemService");
 
 class ItemController {

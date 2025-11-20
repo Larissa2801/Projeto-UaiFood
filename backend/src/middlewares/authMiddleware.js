@@ -2,6 +2,9 @@
 
 const jwt = require("jsonwebtoken");
 const JWT_SECRET = process.env.JWT_SECRET; // Importa a chave secreta do .env
+console.log("JWT EM USO NO MIDDLEWARE:", process.env.JWT_SECRET);
+require("dotenv").config({ path: "./backend/.env" });
+
 
 // =======================================================
 // 1. Middleware de Autenticação (Verifica o Token)

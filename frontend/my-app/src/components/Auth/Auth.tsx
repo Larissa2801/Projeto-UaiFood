@@ -1,6 +1,5 @@
 "use client";
-
-import React, { useState } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import { useRouter } from "next/navigation";
 
@@ -117,11 +116,16 @@ const Auth = () => {
 
   const [termsAccepted, setTermsAccepted] = useState(false);
 
-  if (user) {
-    router.push("/home");
-
-    return null;
-  }
+  useEffect(() => {
+    if (user) {
+      // Redireciona admin para /admin/orders
+      if (user.role === "ADMIN") {
+        router.push("/admin");
+      } else {
+        router.push("/home");
+      }
+    }
+  }, [user, router]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

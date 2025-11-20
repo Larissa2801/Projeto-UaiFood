@@ -14,7 +14,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: "user" | "admin";
+  role: "CLIENT" | "ADMIN"; // role do front, mapeada do backend
   phone?: string;
 }
 
@@ -36,7 +36,6 @@ export interface AuthContextType {
 // --- SETUP DO CONTEXTO ---
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-// ⚠️ CORRETO:
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
 // --- PROVIDER ---
@@ -47,15 +46,35 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Carrega dados salvos
+  // Carrega dados do localStorage
   useEffect(() => {
     const storedToken = localStorage.getItem("@App:token");
     const storedUser = localStorage.getItem("@App:user");
 
     if (storedToken && storedUser) {
+      const parsedUser = JSON.parse(storedUser);
+
+      // Mapear userType do backend para role do front
+      const mappedUser: User = {
+        id: parsedUser.id,
+        name: parsedUser.name,
+        email: parsedUser.email,
+        phone: parsedUser.phone,
+        role: parsedUser.userType === "ADMIN" ? "ADMIN" : "CLIENT",
+      };
+
       setToken(storedToken);
-      setUser(JSON.parse(storedUser) as User);
+      setUser(mappedUser);
+
+      // 🔹 Redirecionamento automático para admin se for ADMIN
+      if (
+        mappedUser.role === "ADMIN" &&
+        window.location.pathname !== "/admin"
+      ) {
+        window.location.href = "/admin"; // ou router.push("/admin") se dentro de componente Next
+      }
     }
+
     setIsLoading(false);
   }, []);
 
@@ -69,8 +88,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       });
 
       const text = await response.text();
-      console.log("RESPOSTA LOGIN:", text);
-
       let data;
       try {
         data = JSON.parse(text);
@@ -86,10 +103,19 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
       const { token, user: userData } = data;
 
+      // Mapear userType para role
+      const mappedUser: User = {
+        id: userData.id,
+        name: userData.name,
+        email: userData.email,
+        phone: userData.phone,
+        role: userData.userType === "ADMIN" ? "ADMIN" : "CLIENT",
+      };
+
       setToken(token);
-      setUser(userData);
+      setUser(mappedUser);
       localStorage.setItem("@App:token", token);
-      localStorage.setItem("@App:user", JSON.stringify(userData));
+      localStorage.setItem("@App:user", JSON.stringify(mappedUser));
 
       return { error: null };
     } catch (err) {
@@ -115,8 +141,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       });
 
       const text = await response.text();
-      console.log("RESPOSTA CADASTRO:", text);
-
       let data;
       try {
         data = JSON.parse(text);

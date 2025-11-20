@@ -8,6 +8,7 @@ class OrderController {
     this.findById = this.findById.bind(this);
     this.updateStatus = this.updateStatus.bind(this);
     this.findByUserId = this.findByUserId.bind(this); // O ajuste para a rota problemática
+    this.findAllOrders = this.findAllOrders.bind(this);
   }
 
   // [CREATE] - POST /orders
@@ -93,6 +94,22 @@ class OrderController {
       return res
         .status(500)
         .json({ error: "Falha interna ao buscar histórico." });
+    }
+  }
+  async findAllOrders(req, res) {
+    const currentUserType = req.userType;
+
+    try {
+      const orders = await orderService.findAllOrders(currentUserType);
+      return res.status(200).json(orders);
+    } catch (error) {
+      if (error.message.includes("Acesso negado")) {
+        return res.status(403).json({ error: error.message });
+      }
+      console.error("Erro ao buscar todos os pedidos:", error);
+      return res
+        .status(500)
+        .json({ error: "Falha interna ao buscar pedidos." });
     }
   }
 }

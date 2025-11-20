@@ -3,6 +3,8 @@ const swaggerUi = require("swagger-ui-express");
 const cors = require("cors");
 require("./backend/src/utils/jsonSerializer");
 require("dotenv").config();
+require("dotenv").config({ path: "./backend/.env" });
+
 
 // Middlewares
 const validation = require("./backend/src/middlewares/validationMiddleware");

@@ -1,5 +1,3 @@
-// frontend/my-app/app/order/[id]/page.tsx
-
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -8,34 +6,59 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Loader2, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
 
-// URL da API (usada para buscar os detalhes do pedido)
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
 
-// Tipos simplificados para o resumo do pedido
-interface OrderSummary {
+// --- INTERFACES DO BACK-END CORRIGIDAS ---
+interface RawOrder {
   id: string;
+  status: string;
+  orderitem?: Array<{
+    quantity: number;
+    item?: {
+      description: string;
+      unitPrice: number;
+    };
+  }>;
+  // ✅ O endereço agora é esperado ANINHADO no objeto user
+  user?: {
+    address?: {
+      street: string;
+      number: string;
+      district: string;
+      city: string;
+      state: string;
+      zipCode: string;
+    };
+  };
+}
+
+// --- INTERFACE DO FRONT-END (O que o componente espera no estado 'order') ---
+interface FinalOrder {
+  id: string;
+  status: string;
   totalPrice: number;
   address: string;
-  status: string;
-  items: Array<{ name: string; quantity: number; price: number }>;
+  items: Array<{
+    name: string;
+    quantity: number;
+    price: number;
+  }>;
 }
 
 export default function OrderConfirmationPage() {
   const params = useParams<{ id: string }>();
-  const id = params!.id;
+  const id = params?.id ? String(params.id) : undefined;
 
   const router = useRouter();
   const { token } = useAuth();
 
-  const [order, setOrder] = useState<OrderSummary | null>(null);
+  const [order, setOrder] = useState<FinalOrder | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Lógica para buscar os detalhes do pedido (requer autenticação)
   useEffect(() => {
     async function fetchOrderDetails() {
       if (!token || !id) {
-        // Redireciona se não houver token ou ID do pedido (não deveria acontecer se o checkout funcionou)
         setError("Pedido ou autenticação não encontrados.");
         setIsLoading(false);
         return;
@@ -49,14 +72,49 @@ export default function OrderConfirmationPage() {
         });
 
         if (!response.ok) {
+          console.error("ERRO DE API - Status:", response.status);
           throw new Error("Não foi possível carregar os detalhes do pedido.");
         }
 
-        const data: OrderSummary = await response.json();
-        setOrder(data);
+        const data: RawOrder = await response.json();
+
+        // --- Mapeamento e Cálculo dos Dados ---
+
+        // 1. Mapear os itens
+        const itemsList = (data.orderitem || []).map((oi) => ({
+          name: oi.item?.description || "Item desconhecido",
+          quantity: oi.quantity,
+          price: oi.item?.unitPrice || 0,
+        }));
+
+        // 2. Calcular o Preço Total
+        const totalPrice = itemsList.reduce(
+          (sum, item) => sum + item.price * item.quantity,
+          0
+        );
+
+        // 3. Formatar o Endereço para a string de exibição
+        // PEGA O OBJETO ANINHADO: data.user?.address
+        const addressData = data.user?.address;
+
+        const formattedAddress = addressData
+          ? `${addressData.street}, ${addressData.number} - ${addressData.district} | ${addressData.city}/${addressData.state} (${addressData.zipCode})`
+          : "Endereço não informado";
+
+        // 4. Criar o objeto final
+        const finalOrder: FinalOrder = {
+          id: data.id,
+          status: data.status,
+          totalPrice,
+          items: itemsList,
+          address: formattedAddress,
+        };
+
+        setOrder(finalOrder);
       } catch (err: any) {
-        setError(err.message);
-        toast.error(err.message || "Erro ao buscar detalhes do pedido.");
+        const msg = err?.message || "Erro inesperado ao carregar o pedido.";
+        setError(msg);
+        toast.error(msg);
       } finally {
         setIsLoading(false);
       }
@@ -64,6 +122,8 @@ export default function OrderConfirmationPage() {
 
     fetchOrderDetails();
   }, [id, token]);
+
+  // --- FUNÇÕES DE RENDERIZAÇÃO DE ESTADO ---
 
   if (isLoading) {
     return (
@@ -93,6 +153,7 @@ export default function OrderConfirmationPage() {
     );
   }
 
+  // --- RENDERIZAÇÃO FINAL (Pedido Confirmado) ---
   return (
     <div className="max-w-3xl mx-auto p-4 md:p-8 pt-16 min-h-screen">
       <div className="text-center mb-10">

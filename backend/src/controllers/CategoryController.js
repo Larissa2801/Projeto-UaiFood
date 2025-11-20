@@ -1,6 +1,113 @@
-// backend/src/controllers/CategoryController.js
+/**
+ * @swagger
+ * components:
+ *   schemas:
+ *     CategoryCreate:
+ *       type: object
+ *       required:
+ *         - description
+ *       properties:
+ *         description:
+ *           type: string
+ *           example: Lanches Artesanais
+ *
+ *     CategoryResponse:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *         description:
+ *           type: string
+ *         createdAt:
+ *           type: string
+ *           format: date-time
+ */
 
-// Importa o Serviço em vez do Repositório
+/**
+ * @swagger
+ * tags:
+ *   - name: Catálogo - Categorias
+ *     description: Gerenciamento de categorias (ADMIN)
+ */
+
+/**
+ * @swagger
+ * /categories:
+ *   post:
+ *     summary: Cria uma nova categoria (ADMIN)
+ *     tags:
+ *       - Catálogo - Categorias
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CategoryCreate'
+ *     responses:
+ *       201:
+ *         description: Categoria criada com sucesso.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CategoryResponse'
+ *       403:
+ *         description: Acesso proibido.
+ *
+ *   get:
+ *     summary: Lista todas as categorias
+ *     tags:
+ *       - Catálogo - Categorias
+ *     responses:
+ *       200:
+ *         description: Lista de categorias.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: array
+ *               items:
+ *                 $ref: '#/components/schemas/CategoryResponse'
+ */
+
+/**
+ * @swagger
+ * /categories/{id}:
+ *   parameters:
+ *     - in: path
+ *       name: id
+ *       schema:
+ *         type: string
+ *       required: true
+ *       description: ID da categoria
+ *
+ *   put:
+ *     summary: Atualiza uma categoria pelo ID (ADMIN)
+ *     tags:
+ *       - Catálogo - Categorias
+ *     security:
+ *       - BearerAuth: []
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/CategoryCreate'
+ *     responses:
+ *       200:
+ *         description: Categoria atualizada.
+ *
+ *   delete:
+ *     summary: Deleta uma categoria pelo ID (ADMIN)
+ *     tags:
+ *       - Catálogo - Categorias
+ *     security:
+ *       - BearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Categoria deletada.
+ */
+
 const categoryService = require("../services/CategoryService");
 
 class CategoryController {

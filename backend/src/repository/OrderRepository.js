@@ -59,6 +59,35 @@ class OrderRepository {
     }
   }
 
+  // ...
+  async findAllOrders() {
+    return prisma.order.findMany({
+      orderBy: {
+        createdAt: "desc",
+      },
+      include: {
+        // Garante que os dados necessários para o frontend sejam carregados
+        orderitem: {
+          include: {
+            item: {
+              select: {
+                description: true,
+                unitPrice: true,
+              },
+            },
+          },
+        },
+        user: {
+          // O nome correto da sua relação de usuário/cliente
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
   /**
    * [READ ONE] Busca um pedido pelo ID, incluindo seus itens e a descrição do produto.
    */
@@ -68,26 +97,23 @@ class OrderRepository {
         id: BigInt(id),
       },
       include: {
-        // Inclui a lista de orderitem
+        // 🛑 CORREÇÃO AQUI: Garante que os detalhes do produto e a quantidade sejam carregados
         orderitem: {
           select: {
-            quantity: true,
-            // Inclui o item original (produto)
+            quantity: true, // Quantidade comprada
             item: {
+              // O produto associado ao orderitem
               select: {
                 id: true,
-                description: true,
-                unitPrice: true,
+                description: true, // Nome do produto
+                unitPrice: true, // Preço unitário do produto
               },
             },
           },
         },
-        // Inclui o usuário que fez o pedido
         user: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
+          include: {
+            address: true,
           },
         },
       },

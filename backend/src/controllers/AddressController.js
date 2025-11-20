@@ -1,4 +1,184 @@
-// backend/src/controllers/AddressController.js
+/**
+ * @swagger
+ * openapi: 3.0.0
+ * info:
+ *   title: API de Gerenciamento de Endereços
+ *   description: Rotas para visualização, criação/atualização e exclusão de endereço de usuário.
+ *   version: 1.0.0
+ *
+ * servers:
+ *   - url: /api/v1
+ *     description: Servidor Principal
+ *
+ * components:
+ *   securitySchemes:
+ *     BearerAuth:
+ *       type: http
+ *       scheme: bearer
+ *       bearerFormat: JWT
+ *   schemas:
+ *     Address:
+ *       type: object
+ *       properties:
+ *         id:
+ *           type: string
+ *           format: uuid
+ *           description: ID do endereço.
+ *           readOnly: true
+ *         userId:
+ *           type: string
+ *           format: uuid
+ *           description: ID do usuário proprietário do endereço.
+ *           readOnly: true
+ *         street:
+ *           type: string
+ *           example: Rua das Flores
+ *         number:
+ *           type: string
+ *           example: 123
+ *         complement:
+ *           type: string
+ *           nullable: true
+ *           example: Apt 101
+ *         city:
+ *           type: string
+ *           example: São Paulo
+ *         state:
+ *           type: string
+ *           example: SP
+ *         zipCode:
+ *           type: string
+ *           example: 01000-000
+ *       required:
+ *         - street
+ *         - number
+ *         - city
+ *         - state
+ *         - zipCode
+ *     Error:
+ *       type: object
+ *       properties:
+ *         error:
+ *           type: string
+ *           description: Mensagem de erro
+ *
+ * tags:
+ *   - name: Endereços
+ *     description: Gerenciamento de endereços de usuários
+ *
+ * paths:
+ *   /users/{userId}/address:
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *         description: ID do usuário cujo endereço será acessado
+ *
+ *     get:
+ *       summary: Buscar endereço de um usuário pelo seu ID
+ *       tags:
+ *         - Endereços
+ *       security:
+ *         - BearerAuth: []
+ *       responses:
+ *         '200':
+ *           description: Endereço encontrado com sucesso.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Address'
+ *         '401':
+ *           description: Não autenticado
+ *         '403':
+ *           description: Acesso negado
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Error'
+ *         '404':
+ *           description: Endereço não encontrado
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Error'
+ *         '500':
+ *           description: Erro interno
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Error'
+ *
+ *     post:
+ *       summary: Criar ou atualizar o endereço de um usuário (Upsert)
+ *       tags:
+ *         - Endereços
+ *       security:
+ *         - BearerAuth: []
+ *       requestBody:
+ *         required: true
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/Address'
+ *       responses:
+ *         '200':
+ *           description: Endereço criado/atualizado com sucesso.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Address'
+ *         '401':
+ *           description: Não autenticado
+ *         '403':
+ *           description: Acesso negado
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Error'
+ *         '500':
+ *           description: Erro interno
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Error'
+ *
+ *     delete:
+ *       summary: Excluir o endereço de um usuário
+ *       tags:
+ *         - Endereços
+ *       security:
+ *         - BearerAuth: []
+ *       responses:
+ *         '200':
+ *           description: Endereço excluído com sucesso.
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Address'
+ *         '401':
+ *           description: Não autenticado
+ *         '403':
+ *           description: Acesso negado
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Error'
+ *         '404':
+ *           description: Endereço não encontrado
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Error'
+ *         '500':
+ *           description: Erro interno
+ *           content:
+ *             application/json:
+ *               schema:
+ *                 $ref: '#/components/schemas/Error'
+ */
 const addressService = require("../services/AddressService");
 // Importar validation e schemas
 
@@ -13,12 +193,9 @@ class AddressController {
 
     // REGRA DE SEGURANÇA: Usuário só busca o próprio endereço (a menos que seja ADMIN)
     if (currentUserType !== "ADMIN" && userId !== String(currentUserId)) {
-      return res
-        .status(403)
-        .json({
-          error:
-            "Acesso negado: Você só pode visualizar o seu próprio endereço.",
-        });
+      return res.status(403).json({
+        error: "Acesso negado: Você só pode visualizar o seu próprio endereço.",
+      });
     }
 
     try {
@@ -46,11 +223,9 @@ class AddressController {
 
     // REGRA DE SEGURANÇA: Usuário só altera o próprio endereço (a menos que seja ADMIN)
     if (currentUserType !== "ADMIN" && userId !== String(currentUserId)) {
-      return res
-        .status(403)
-        .json({
-          error: "Acesso negado: Você só pode alterar o seu próprio endereço.",
-        });
+      return res.status(403).json({
+        error: "Acesso negado: Você só pode alterar o seu próprio endereço.",
+      });
     }
 
     try {
@@ -73,11 +248,9 @@ class AddressController {
 
     // REGRA DE SEGURANÇA: Usuário só deleta o próprio endereço (a menos que seja ADMIN)
     if (currentUserType !== "ADMIN" && userId !== String(currentUserId)) {
-      return res
-        .status(403)
-        .json({
-          error: "Acesso negado: Você só pode deletar o seu próprio endereço.",
-        });
+      return res.status(403).json({
+        error: "Acesso negado: Você só pode deletar o seu próprio endereço.",
+      });
     }
 
     try {
